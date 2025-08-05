@@ -104,7 +104,7 @@ footer {
   position: absolute;
   font-size: 20rem;
   color: var(--gray);
-  opacity: 0.1;
+  opacity: 0.5;
   user-select: none;
   pointer-events: none;
 }
