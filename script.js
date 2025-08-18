@@ -255,4 +255,142 @@ class BreakoutGame {
   }
   
   resetBall() {
-    this.ballX = this.paddle
+    this.ballX = this.paddleX + this.paddleWidth / 2;
+    this.ballY = this.paddleY - this.ballRadius;
+    this.ballOnPaddle = true;
+    this.updateUI();
+  }
+  
+  checkBrickCollisions() {
+    for (let c = 0; c < this.brickColumnCount; c++) {
+      for (let r = 0; r < this.brickRowCount; r++) {
+        let brick = this.bricks[c][r];
+        if (brick.status === 1) {
+          let brickX = (c * (this.brickWidth + this.brickPadding)) + this.brickOffsetLeft;
+          let brickY = (r * (this.brickHeight + this.brickPadding)) + this.brickOffsetTop;
+          
+          if (this.ballX + this.ballRadius > brickX &&
+              this.ballX - this.ballRadius < brickX + this.brickWidth &&
+              this.ballY + this.ballRadius > brickY &&
+              this.ballY - this.ballRadius < brickY + this.brickHeight) {
+            
+            this.ballDY = -this.ballDY;
+            brick.status = 0;
+            this.score += 10;
+            
+            // Check win condition
+            if (this.checkWin()) {
+              this.gameWin();
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  checkWin() {
+    for (let c = 0; c < this.brickColumnCount; c++) {
+      for (let r = 0; r < this.brickRowCount; r++) {
+        if (this.bricks[c][r].status === 1) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+  
+  gameOver() {
+    this.gameRunning = false;
+    this.gamePaused = false;
+    this.startBtn.textContent = 'Start';
+    this.pauseBtn.disabled = true;
+    this.pauseBtn.textContent = 'Pausa';
+    
+    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    
+    this.ctx.fillStyle = '#ff4757';
+    this.ctx.font = '24px Inter';
+    this.ctx.textAlign = 'center';
+    this.ctx.fillText('GAME OVER!', this.canvas.width / 2, this.canvas.height / 2 - 20);
+    
+    this.ctx.fillStyle = 'white';
+    this.ctx.font = '16px Inter';
+    this.ctx.fillText(`Score: ${this.score}`, this.canvas.width / 2, this.canvas.height / 2 + 10);
+  }
+  
+  gameWin() {
+    this.gameRunning = false;
+    this.gamePaused = false;
+    this.startBtn.textContent = 'Start';
+    this.pauseBtn.disabled = true;
+    this.pauseBtn.textContent = 'Pausa';
+    
+    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    
+    this.ctx.fillStyle = '#2ed573';
+    this.ctx.font = '24px Inter';
+    this.ctx.textAlign = 'center';
+    this.ctx.fillText('YOU WIN!', this.canvas.width / 2, this.canvas.height / 2 - 20);
+    
+    this.ctx.fillStyle = 'white';
+    this.ctx.font = '16px Inter';
+    this.ctx.fillText(`Score: ${this.score}`, this.canvas.width / 2, this.canvas.height / 2 + 10);
+  }
+  
+  drawBricks() {
+    for (let c = 0; c < this.brickColumnCount; c++) {
+      for (let r = 0; r < this.brickRowCount; r++) {
+        if (this.bricks[c][r].status === 1) {
+          let brickX = (c * (this.brickWidth + this.brickPadding)) + this.brickOffsetLeft;
+          let brickY = (r * (this.brickHeight + this.brickPadding)) + this.brickOffsetTop;
+          
+          this.ctx.fillStyle = this.bricks[c][r].color;
+          this.ctx.fillRect(brickX, brickY, this.brickWidth, this.brickHeight);
+        }
+      }
+    }
+  }
+  
+  drawPaddle() {
+    this.ctx.fillStyle = '#102f5e';
+    this.ctx.fillRect(this.paddleX, this.paddleY, this.paddleWidth, this.paddleHeight);
+  }
+  
+  drawBall() {
+    this.ctx.beginPath();
+    this.ctx.arc(this.ballX, this.ballY, this.ballRadius, 0, Math.PI * 2);
+    this.ctx.fillStyle = '#102f5e';
+    this.ctx.fill();
+    this.ctx.closePath();
+  }
+  
+  updateUI() {
+    this.scoreElement.textContent = `Score: ${this.score}`;
+    this.livesElement.textContent = `Vite: ${this.lives}`;
+  }
+  
+  gameLoop() {
+    if (this.gameRunning && !this.gamePaused) {
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      
+      this.updatePaddle();
+      this.updateBall();
+      this.checkBrickCollisions();
+      
+      this.drawBricks();
+      this.drawPaddle();
+      this.drawBall();
+      
+      this.updateUI();
+    }
+    
+    requestAnimationFrame(() => this.gameLoop());
+  }
+}
+
+// Inizializza il gioco quando la pagina è caricata
+document.addEventListener('DOMContentLoaded', () => {
+  new BreakoutGame();
+});
